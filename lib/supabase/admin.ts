@@ -2,9 +2,16 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 export function createAdminClient() {
+  const secretKey =
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!secretKey) {
+    throw new Error("Missing SUPABASE_SECRET_KEY");
+  }
+
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    secretKey,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 }
