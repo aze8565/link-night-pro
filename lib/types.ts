@@ -2,6 +2,7 @@ export type Role = "user" | "editor" | "admin";
 export type Plan = "free" | "regional" | "global";
 export type ArticleStatus = "draft" | "published";
 export type AccessLevel = Plan;
+export type ContentType = "article" | "video";
 
 export type Profile = {
   id: string;
@@ -18,6 +19,11 @@ export type Article = {
   slug: string;
   excerpt: string;
   content: string;
+  preview_content: string | null;
+  content_type: ContentType;
+  video_url: string | null;
+  duration_text: string | null;
+  is_featured: boolean;
   country: string;
   city: string;
   cover_url: string | null;
