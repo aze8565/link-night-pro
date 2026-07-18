@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 const OWNER_EMAIL = "lkaze2441@gmail.com";
 
@@ -21,33 +20,18 @@ export async function GET(request: Request) {
     );
   }
 
-  const admin = createAdminClient();
-  const { data: profile, error: profileError } = await admin
+  const { error: profileError } = await supabase
     .from("profiles")
-    .select("id, role")
-    .eq("id", user.id)
-    .single();
+    .update({ role: "admin", plan: "global" })
+    .eq("id", user.id);
 
-  if (profileError || !profile) {
+  if (profileError) {
     return NextResponse.redirect(
-      new URL("/account?error=profile_not_found", url.origin),
+      new URL(`/account?error=${encodeURIComponent(profileError.message)}`, url.origin),
     );
   }
 
-  if (profile.role !== "admin") {
-    const { error: updateProfileError } = await admin
-      .from("profiles")
-      .update({ role: "admin", plan: "global" })
-      .eq("id", user.id);
-
-    if (updateProfileError) {
-      return NextResponse.redirect(
-        new URL("/account?error=admin_setup_failed", url.origin),
-      );
-    }
-  }
-
-  const { error: membershipError } = await admin.from("memberships").upsert(
+  const { error: membershipError } = await supabase.from("memberships").upsert(
     {
       user_id: user.id,
       plan: "global",
@@ -58,9 +42,9 @@ export async function GET(request: Request) {
 
   if (membershipError) {
     return NextResponse.redirect(
-      new URL("/account?error=membership_setup_failed", url.origin),
+      new URL(`/account?error=${encodeURIComponent(membershipError.message)}`, url.origin),
     );
   }
 
-  return NextResponse.redirect(new URL("/admin", url.origin));
+  return NextResponse.redirect(new URL("/account?admin=ready", url.origin));
 }
