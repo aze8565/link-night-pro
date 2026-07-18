@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const OWNER_EMAIL = "lkaze2441@gmail.com";
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const supabase = await createClient();
@@ -11,6 +13,12 @@ export async function GET(request: Request) {
 
   if (!user) {
     return NextResponse.redirect(new URL("/login?next=/setup-admin", url.origin));
+  }
+
+  if (user.email?.toLowerCase() !== OWNER_EMAIL) {
+    return NextResponse.redirect(
+      new URL("/account?error=admin_setup_not_allowed", url.origin),
+    );
   }
 
   const admin = createAdminClient();
@@ -26,29 +34,17 @@ export async function GET(request: Request) {
     );
   }
 
-  if (profile.role === "admin") {
-    return NextResponse.redirect(new URL("/admin", url.origin));
-  }
+  if (profile.role !== "admin") {
+    const { error: updateProfileError } = await admin
+      .from("profiles")
+      .update({ role: "admin", plan: "global" })
+      .eq("id", user.id);
 
-  const { count } = await admin
-    .from("profiles")
-    .select("id", { count: "exact", head: true });
-
-  if (count !== 1) {
-    return NextResponse.redirect(
-      new URL("/account?error=admin_setup_unavailable", url.origin),
-    );
-  }
-
-  const { error: updateProfileError } = await admin
-    .from("profiles")
-    .update({ role: "admin", plan: "global" })
-    .eq("id", user.id);
-
-  if (updateProfileError) {
-    return NextResponse.redirect(
-      new URL("/account?error=admin_setup_failed", url.origin),
-    );
+    if (updateProfileError) {
+      return NextResponse.redirect(
+        new URL("/account?error=admin_setup_failed", url.origin),
+      );
+    }
   }
 
   const { error: membershipError } = await admin.from("memberships").upsert(
