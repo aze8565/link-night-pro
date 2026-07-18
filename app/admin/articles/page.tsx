@@ -16,11 +16,12 @@ export default async function AdminArticlesPage() {
     <>
       <div className="admin-head">
         <div>
-          <p className="eyebrow">ARTICLES</p>
-          <h1>文章管理</h1>
+          <p className="eyebrow">CONTENT LIBRARY</p>
+          <h1>内容管理</h1>
+          <p className="muted">一套后台同时发布免费/会员图文和视频。</p>
         </div>
         <Link className="btn btn-primary" href="/admin/articles/new">
-          发布文章
+          发布新内容
         </Link>
       </div>
       <div className="table-wrap">
@@ -28,6 +29,7 @@ export default async function AdminArticlesPage() {
           <thead>
             <tr>
               <th>标题</th>
+              <th>类型</th>
               <th>国家/城市</th>
               <th>权限</th>
               <th>状态</th>
@@ -39,17 +41,19 @@ export default async function AdminArticlesPage() {
             {articles.map((article) => (
               <tr key={article.id}>
                 <td>{article.title}</td>
+                <td>{(article.content_type ?? "article") === "video" ? "视频" : "图文"}</td>
+                <td>{article.country}/{article.city}</td>
                 <td>
-                  {article.country}/{article.city}
+                  {article.access_level === "free"
+                    ? "免费"
+                    : article.access_level === "regional"
+                      ? "区域会员"
+                      : "全站会员"}
                 </td>
-                <td>{article.access_level}</td>
-                <td>{article.status}</td>
+                <td>{article.status === "published" ? "已发布" : "草稿"}</td>
                 <td>{formatDate(article.updated_at)}</td>
                 <td>
-                  <Link
-                    className="btn btn-small"
-                    href={`/admin/articles/${article.id}`}
-                  >
+                  <Link className="btn btn-small" href={`/admin/articles/${article.id}`}>
                     编辑
                   </Link>{" "}
                   <DeleteArticleButton id={article.id} />
