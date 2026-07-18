@@ -2,16 +2,44 @@ import Link from "next/link";
 import type { Article } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
+function accessLabel(article: Article) {
+  if (article.access_level === "free") return "免费";
+  if (article.access_level === "regional") return "区域会员";
+  return "全站会员";
+}
+
 export function GuideCard({ article }: { article: Article }) {
+  const isVideo = (article.content_type ?? "article") === "video";
+
   return (
     <article className="card guide-card">
       <Link href={`/guides/${article.slug}`}>
-        <div className="cover" style={article.cover_url ? { backgroundImage: `url(${article.cover_url})` } : undefined} />
+        <div
+          className="cover"
+          style={
+            article.cover_url
+              ? { backgroundImage: `url(${article.cover_url})` }
+              : undefined
+          }
+        >
+          {isVideo && <span className="play-badge">▶</span>}
+          {isVideo && article.duration_text && (
+            <span className="duration-badge">{article.duration_text}</span>
+          )}
+        </div>
         <div className="guide-body">
-          <span className="pill">{article.access_level === "free" ? "免费" : article.access_level === "regional" ? "区域会员" : "全球会员"}</span>
+          <div className="card-labels">
+            <span className={`pill ${article.access_level === "free" ? "pill-free" : "pill-member"}`}>
+              {accessLabel(article)}
+            </span>
+            <span className="pill pill-plain">{isVideo ? "视频" : "图文"}</span>
+          </div>
           <h3>{article.title}</h3>
           <p className="muted">{article.excerpt}</p>
-          <div className="meta"><span>{article.country} · {article.city}</span><span>{formatDate(article.published_at)}</span></div>
+          <div className="meta">
+            <span>{article.country} · {article.city}</span>
+            <span>{formatDate(article.published_at)}</span>
+          </div>
         </div>
       </Link>
     </article>
