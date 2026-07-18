@@ -1,10 +1,16 @@
 import { requireUser } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { PortalButton } from "@/components/portal-button";
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; admin?: string }>;
+}) {
+  const params = await searchParams;
   const { user, profile } = await requireUser();
-  const { data: membership } = await createAdminClient()
+  const supabase = await createClient();
+  const { data: membership } = await supabase
     .from("memberships")
     .select("*")
     .eq("user_id", user.id)
@@ -21,6 +27,12 @@ export default async function AccountPage() {
             <h2>我的账户</h2>
           </div>
         </div>
+        {params.admin === "ready" && (
+          <p className="notice success">管理员后台已初始化完成。</p>
+        )}
+        {params.error && (
+          <p className="notice error">初始化失败：{params.error}</p>
+        )}
         <div className="account-grid">
           <div className="card">
             <h3>账户信息</h3>
