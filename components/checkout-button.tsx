@@ -1,0 +1,2 @@
+"use client";
+export function CheckoutButton({plan}:{plan:"regional"|"global"}){return <button className="btn btn-primary" onClick={async()=>{const r=await fetch("/api/stripe/checkout",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({plan})});const j=await r.json();if(j.url)location.href=j.url;else location.href=j.login??"/login?next=/membership"}}>{plan==="regional"?"开通区域会员":"开通全球会员"}</button>}

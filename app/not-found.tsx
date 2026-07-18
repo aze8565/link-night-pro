@@ -1,0 +1,1 @@
+export default function NotFound(){return <main className="auth-wrap"><div className="card auth-card"><p className="eyebrow">404</p><h1>页面不存在</h1><a className="btn btn-primary" href="/">返回首页</a></div></main>}

@@ -1,0 +1,6 @@
+import { NextResponse } from "next/server";
+import { requireEditor } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { articleSchema } from "@/lib/validation";
+export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){await requireEditor();const {id}=await params;const parsed=articleSchema.safeParse(await request.json());if(!parsed.success)return NextResponse.json({error:parsed.error.issues.map(i=>i.message).join("；")},{status:400});const supabase=await createClient();const {data:old}=await supabase.from("articles").select("published_at").eq("id",id).single();const payload={...parsed.data,published_at:parsed.data.status==="published"?(old?.published_at??new Date().toISOString()):null};const {data,error}=await supabase.from("articles").update(payload).eq("id",id).select().single();if(error)return NextResponse.json({error:error.message},{status:400});return NextResponse.json(data)}
+export async function DELETE(_:Request,{params}:{params:Promise<{id:string}>}){await requireEditor();const {id}=await params;const supabase=await createClient();const {error}=await supabase.from("articles").delete().eq("id",id);if(error)return NextResponse.json({error:error.message},{status:400});return NextResponse.json({ok:true})}
